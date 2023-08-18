@@ -7,10 +7,10 @@ async function signUpfunction(event) {
     const errorContainer = document.getElementById('error-container');
     errorContainer.innerHTML = "";
 
-    const username = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const number = document.getElementById('number').value;
-    const password = document.getElementById('password').value;
+    let username = document.getElementById('name').value;
+    let email = document.getElementById('email').value;
+    let number = document.getElementById('number').value;
+    let password = document.getElementById('password').value;
 
     const userDetails = {
         name: username,
@@ -26,7 +26,7 @@ async function signUpfunction(event) {
     try {
         await axios.post(`http://localhost:3000/user/signup`, userDetails);
         alert('You have successfully created account');
-        // window.location.href = '../Login/login.html';
+        window.location.href = '../Login/login.html';
     }
     catch (err) {
         const errorMessage = err.response.data.error;
