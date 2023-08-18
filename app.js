@@ -7,7 +7,11 @@ require('dotenv').config();
 
 const sequelize = require('./util/database');
 
-app.use(cors());
+app.use(
+    cors({
+      origin: "*"
+    })
+  );
 app.use(bodyParser.json({ extended: false }));
 
 const adminRoute = require('./Routes/adminRoutes');
