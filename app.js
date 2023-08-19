@@ -14,9 +14,17 @@ app.use(
   );
 app.use(bodyParser.json({ extended: false }));
 
+const User = require('./model/adminModel');
+const Chat = require('./model/chatModel');
+
 const adminRoute = require('./Routes/adminRoutes');
+const chatRoute = require('./Routes/chatRoute');
 
 app.use(adminRoute);
+app.use(chatRoute);
+
+User.hasMany(Chat);
+Chat.belongsTo(User);
 
 const port = 3000;
 sequelize.sync()

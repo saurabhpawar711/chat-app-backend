@@ -33,8 +33,11 @@ async function loginFunction(e) {
 
     try {
         const response = await axios.post('http://localhost:3000/user/login', loginDetails);
+        const name = response.data.name;
+        localStorage.setItem('username', name);
         alert(response.data.message);
         localStorage.setItem('token', response.data.token);
+        window.location.href = "../Home/homepage.html";
     }
     catch(err) {
         const errMessage = err.response.data.error;
