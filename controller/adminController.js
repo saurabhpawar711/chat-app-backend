@@ -39,9 +39,10 @@ exports.login = async (req, res) => {
             throw new Error('Invalid credentials');
         }
         else {
+            const name = user.name;
             const passwordMatched = await bcrypt.compare(password, user.password);
             if (passwordMatched) {
-                res.status(201).json({ success: true, message: "User logged in successfully", token: generateToken(user.id) });
+                res.status(201).json({ success: true, name: name, message: "User logged in successfully", token: generateToken(user.id) });
             }
             else {
                 throw new Error('Invalid credentials');
