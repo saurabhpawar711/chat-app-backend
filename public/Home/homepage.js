@@ -5,6 +5,7 @@ newUser.innerHTML = `${name}`;
 newUser.classList.add('contact-names');
 userList.appendChild(newUser);
 
+const displayedMessages = new Set();
 const form = document.querySelector('#form');
 form.addEventListener('submit', sendMessage);
 
@@ -26,6 +27,7 @@ async function sendMessage(e) {
         if (response.data.success) {
             const message = response.data.message;
             showMessage(message);
+            displayedMessages.add(message.id);
         }
     }
     catch (err) {
@@ -33,7 +35,9 @@ async function sendMessage(e) {
     }
 }
 
-window.addEventListener('DOMContentLoaded', getChats);
+setInterval(() => {
+    getChats();
+},1000);
 
 async function getChats() {
     try {
@@ -41,7 +45,10 @@ async function getChats() {
         const response = await axios.get("http://localhost:3000/message/getmessages", { headers: { "Authorization": token } });
         const message = response.data.messages;
         for (let i = 0; i < message.length; i++) {
-            showMessage(message[i]);
+            if(!displayedMessages.has(message[i].id)) {
+                showMessage(message[i]);
+                displayedMessages.add(message[i].id);
+            }  
         }
     }
     catch (err) {

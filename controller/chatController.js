@@ -8,18 +8,19 @@ exports.sendMessage = async (req, res) => {
         const name = req.user.name;
         const message = req.body.message;
 
-        await Chat.create({
+        const messageAdded = await Chat.create({
             name: name,
             message: message,
             userId: userId
         }, {transaction: t});
         
         const chatData = {
+            id: messageAdded.id,
             name: name,
             message: message
         }
         await t.commit();
-        res.status(201).json({message: "message sent!", message: chatData, success: true});
+        res.status(201).json({message: chatData, success: true});
     }
     catch(err) {
         console.log(err);
@@ -31,7 +32,7 @@ exports.sendMessage = async (req, res) => {
 exports.getMessages = async (req, res) => {
     try {
         const messages = await Chat.findAll({
-            attributes: ['name', 'message']
+            attributes: ['id', 'name', 'message']
         });
         res.status(200).json({success: true, messages: messages});
     }
