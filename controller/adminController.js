@@ -35,7 +35,6 @@ exports.login = async (req, res) => {
         const password = req.body.password;
         const user = await Admin.findOne({ where: { email: email } });
         if (!user) {
-            console.log(35);
             throw new Error('Invalid credentials');
         }
         else {

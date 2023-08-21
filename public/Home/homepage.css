@@ -32,7 +32,7 @@ body {
 
   .chatting {
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -42,13 +42,16 @@ body {
     overflow-y: auto;
   }
 
-  .joiner {
-    background: #fff;
-    color: #000;
-    border-radius: 20px;
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 20px;
+  .loadBtn {
+    display: flex;
+    margin: 0 auto;
+    flex-direction: column;
+    order: 1;
+  }
+
+  .previousChat {
+    flex-direction: column;
+    order: 2;
   }
 
   .sender {
