@@ -1,16 +1,29 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 0;
+    margin: 0 auto;
     padding: 0;
     background-color: #4f4f4f;
+  }
+
+  .container-fluid {
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+  }
+   
+  .chat-layout {
+    height: 95vh;
+    width: 210vh;
+    display: flex;
   }
 
   .contact-list {
     background-color: #007bff;
     color: #fff;
     padding: 20px;
-    height: 100vh;
-    width: 70vh;
+    height: 100%;
     overflow-y: auto;
     border-radius: 10px;
   }
@@ -28,18 +41,19 @@ body {
 
   .chat-box {
     background: #4f4f4f;
+    overflow: none;
   }
 
   .chatting {
     display: flex;
+    border-radius: 10px;
     flex-direction: column-reverse;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    height: 92vh;
-    width: 150vh;
     overflow-y: auto;
+    height: 85vh;
   }
 
   .loadBtn {
@@ -84,14 +98,13 @@ body {
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 100%;
-    margin-top: 5px;
-    margin-left: 4px;
+    padding: 10px;
+    justify-content: space-between;
+    border-radius: 20px;
+    margin-top: 7px;
   }
 
   input[type="text"] {
-    /* flex: 1; */
     padding: 10px;
     border: none;
     border-radius: 20px;
@@ -100,7 +113,7 @@ body {
   i {
     position: absolute;
     top: 50%;
-    right: 25px;
+    right: 40px;
     transform: translateY(-50%);
     font-size: 30px;
     cursor: pointer;
@@ -111,4 +124,22 @@ body {
     background: transparent;
   }
 
+  .modal-body form input {
+    border: 1px solid;
+  }
+
+  h5 {
+    color: #000;
+    font-weight: bold;
+  }
+
+  label {
+    color: #000;
+  }
+
+  a {
+    color: #000;
+    font-weight: bold;
+    text-decoration: none;
+  }
   

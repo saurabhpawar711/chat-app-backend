@@ -8,11 +8,13 @@ exports.sendMessage = async (req, res) => {
         const userId = req.user.id;
         const name = req.user.name;
         const message = req.body.message;
+        const groupId = req.body.groupId;
 
         const messageAdded = await Chat.create({
             name: name,
             message: message,
-            userId: userId
+            userId: userId,
+            groupId: groupId
         }, { transaction: t });
 
         const chatData = {
@@ -32,22 +34,15 @@ exports.sendMessage = async (req, res) => {
 
 exports.getMessages = async (req, res) => {
     try {
-        const lastMsgId = req.query.id;
-        let whereCondition = {};
-
-        if(lastMsgId) {
-            whereCondition = {
-                id: {
-                    [Op.gt]: lastMsgId
-                }
-            }
-        }
+        const groupId = req.params.id;
         const messages = await Chat.findAll({
             attributes: ['id', 'name', 'message'],
-            where: whereCondition
+            where: {
+                groupId: groupId
+            }
         });
-        const totalMsgs = await Chat.count();
-        res.status(200).json({ success: true, messages: messages, noOfMsgs: totalMsgs });
+        // const totalMsgs = await Chat.count();
+        res.status(200).json({ success: true, messages: messages });
     }
     catch (err) {
         console.log(err);
