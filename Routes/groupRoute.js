@@ -10,4 +10,14 @@ router.get('/user/groups', authenticateUser.authenticateUser, groupController.ge
 
 router.post('/group/add-user', authenticateUser.authenticateUser, groupController.addUserinGroup);
 
+router.get('/group/get-users/:id', authenticateUser.authenticateUser, groupController.getUsersOfGroup);
+
+router.post('/group/make-admin', authenticateUser.authenticateUser, groupController.makeAdmin);
+
+router.delete('/group/remove-user', authenticateUser.authenticateUser, groupController.removeUserFromUser);
+
+router.post('/group/remove-admin', authenticateUser.authenticateUser, groupController.removeAsAdmin);
+
+router.delete('/group/delete-group/:groupName', authenticateUser.authenticateUser, groupController.deleteGroup);
+
 module.exports = router;

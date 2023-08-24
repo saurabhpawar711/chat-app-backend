@@ -32,7 +32,7 @@
                     <input type="text" class="form-control" id="groupName" required>
                   </div>
                   <div class="mb-3">
-                    <label for="emailAddresses" class="form-label">Add Users (Email Addresses)</label>
+                    <label for="emailAddresses" class="form-label">Add participants (Email Addresses)</label>
                     <input type="email" class="form-control" id="emailAddresses" multiple>
                     <div class="form-text">Enter more email addresses separated by commas.</div>
                   </div>
@@ -77,14 +77,53 @@
           </div>
         </div>
 
+        <button type="button" class="btn btn-info mb-3" data-bs-toggle="modal" data-bs-target="#deleteGroupModal">
+          Delete Group
+        </button>
+        <div class="modal fade" id="deleteGroupModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+          aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Delete Group</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form>
+                  <div class="mb-3">
+                    <label for="groupName" class="form-label">Group Name</label>
+                    <input type="text" class="form-control" id="groupName2" required>
+                  </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="deleteGroupBtn">Delete Group</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="manage-users-modal">
+          <div class="modal-content">
+            <span class="close-button " style="color: #000;">&times;</span>
+            <h2>Manage Users</h2>
+            <ul class="user-list"></ul>
+            <button class="remove-user-button btn btn-primary my-1">Remove User</button>
+            <button class="make-admin-button btn btn-primary my-1">Make Admin</button>
+            <button class="remove-admin-button btn btn-primary my-1">Dismiss as Admin</button>
+          </div>
+        </div>
+
+
         <div class="list-container">
           <ul class="list-group">
-            <li class="contact-names">
-              <a href="#" class="group1">John Doe</a>
+            <!-- <li class="contact-names">
+              John Doe
             </li>
             <li class="contact-names">
               Jane Smith
-            </li>
+            </li> -->
           </ul>
         </div>
       </div>

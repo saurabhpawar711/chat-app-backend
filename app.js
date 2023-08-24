@@ -27,12 +27,12 @@ app.use(adminRoute);
 app.use(chatRoute);
 app.use(groupRoute);
 
-User.hasMany(Chat);
+User.hasMany(Chat, { onDelete: 'CASCADE' });
 Chat.belongsTo(User);
-User.belongsToMany(Group, {through: UserGroup});
+User.belongsToMany(Group, {through: UserGroup, onDelete: 'CASCADE'});
 Group.belongsToMany(User, {through: UserGroup});
-Chat.belongsTo(Group);
-Group.hasMany(Chat);
+Chat.belongsTo(Group, { onDelete: 'CASCADE' });
+Group.hasMany(Chat, { onDelete: 'CASCADE' });
 
 const port = 3000;
 sequelize.sync()
