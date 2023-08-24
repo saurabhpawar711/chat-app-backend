@@ -64,7 +64,7 @@ exports.checkRequest = async (req, res, next) => {
         const userId = isRequestActive.userId;
         if (isRequestActive) {
             await ResetPassword.update({ isActive: false }, { where: { id: uuid } });
-            res.redirect(`http://localhost:3000/ResetPassword/resetPassword.html?uI=${userId}&u=${uuid}`);
+            res.redirect(`${backendApi}/ResetPassword/resetPassword.html?uI=${userId}&u=${uuid}`);
         }
         else {
             throw new Error('Link expired');

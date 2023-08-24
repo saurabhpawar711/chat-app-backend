@@ -1,3 +1,4 @@
+const backendApi = "http://16.170.78.233:3000";
 const signUp = document.getElementById('form');
 signUp.addEventListener('submit', signUpfunction);
 
@@ -24,7 +25,7 @@ async function signUpfunction(event) {
     document.getElementById('password').value = "";
 
     try {
-        await axios.post(`http://localhost:3000/user/signup`, userDetails);
+        await axios.post(`${backendApi}/user/signup`, userDetails);
         alert('You have successfully created account');
         window.location.href = '../Login/login.html';
     }

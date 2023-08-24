@@ -1,3 +1,4 @@
+const backendApi = "http://16.170.78.233:3000";
 const resetBtn = document.getElementById('resetBtn');
 
 resetBtn.addEventListener('click', changePassword);
@@ -17,7 +18,7 @@ async function changePassword(event) {
     document.getElementById('typePassword').value = "";
     try {
         console.log(70);
-        const response = await axios.post(`http://localhost:3000/password/updatepassword/${userId}`, newPassword);
+        const response = await axios.post(`${backendApi}/password/updatepassword/${userId}`, newPassword);
         console.log(80);
         if (response.data.success) {
             console.log(90);

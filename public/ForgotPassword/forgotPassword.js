@@ -1,4 +1,4 @@
-const backendApi = "http://localhost:3000";
+const backendApi = "http://16.170.78.233:3000";
 const submitBtn = document.getElementById('submitBtn');
 submitBtn.addEventListener('click', sendMail);
 

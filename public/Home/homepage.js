@@ -1,4 +1,4 @@
-
+const backendApi = "http://16.170.78.233:3000";
 const displayedMessages = new Set();
 const form = document.querySelector('#form');
 form.addEventListener('submit', sendMessage);
@@ -15,7 +15,7 @@ async function sendMessage(e) {
     console.log(messageDetails);
     try {
         const token = localStorage.getItem('token');
-        const response = await axios.post('http://localhost:3000/message/sendmessage', messageDetails,
+        const response = await axios.post(`${backendApi}/message/sendmessage`, messageDetails,
             {
                 headers: { "Authorization": token }
             }
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // const lastMsgId = messages[length - 1].id;
                 async function loadChats() {
                 const token = localStorage.getItem('token');
-                const response = await axios.get(`http://localhost:3000/message/getmessages/${groupId}`, { headers: { "Authorization": token } });
+                const response = await axios.get(`${backendApi}/message/getmessages/${groupId}`, { headers: { "Authorization": token } });
                 const messages = response.data.messages
                 for (let i = 0; i < messages.length; i++) {
                     if (!displayedMessages.has(messages[i].id)) {

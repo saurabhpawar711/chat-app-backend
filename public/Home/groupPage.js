@@ -1,4 +1,4 @@
-
+const backendApi = "http://16.170.78.233:3000";
 const createTableModal = document.getElementById('createGroupModal');
 const groupCreateBtn = document.getElementById('groupCreateBtn');
 groupCreateBtn.addEventListener('click', async () => {
@@ -11,7 +11,7 @@ groupCreateBtn.addEventListener('click', async () => {
     };
     console.log(groupDetails);
     const token = localStorage.getItem('token');
-    const response = await axios.post('http://localhost:3000/group/create-group', groupDetails, { headers: { "Authorization": token } });
+    const response = await axios.post(`${backendApi}/group/create-group`, groupDetails, { headers: { "Authorization": token } });
 
     window.location.href = 'homepage.html';
 })
@@ -21,7 +21,7 @@ window.addEventListener('DOMContentLoaded', getGroupName);
 
 async function getGroupName() {
     const token = localStorage.getItem('token');
-    const response = await axios.get('http://localhost:3000/user/groups', { headers: { "Authorization": token } });
+    const response = await axios.get(`${backendApi}/user/groups`, { headers: { "Authorization": token } });
     const groupId = [];
     for (let i = 0; i < response.data.groupIds.length; i++) {
         groupId.push(response.data.groupIds[i].groupId);
@@ -53,7 +53,7 @@ addUserBtn.addEventListener('click', async () => {
         };
         console.log(groupDetails);
         const token = localStorage.getItem('token');
-        const response = await axios.post('http://localhost:3000/group/add-user', groupDetails, { headers: { "Authorization": token } });
+        const response = await axios.post(`${backendApi}/group/add-user`, groupDetails, { headers: { "Authorization": token } });
         window.location.href = 'homepage.html';
         alert(response.data.message);
     }
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             manageUsersButton.addEventListener('click', async () => {
 
                 const token = localStorage.getItem('token');
-                const usersOfGroups = await axios.get(`http://localhost:3000/group/get-users/${groupId}`, { headers: { "Authorization": token } })
+                const usersOfGroups = await axios.get(`${backendApi}/group/get-users/${groupId}`, { headers: { "Authorization": token } })
                 const userNames = usersOfGroups.data.memberNames;
                 const userIds = usersOfGroups.data.memberIds;
                 const isAdmin = usersOfGroups.data.isAdmin;
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             commomLines();
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:3000/group/make-admin', userDetails, { headers: { "Authorization": token } });
+            const response = await axios.post(`${backendApi}/group/make-admin`, userDetails, { headers: { "Authorization": token } });
             if (response.data.success) {
                 alert(response.data.message);
                 window.location.href = "homepage.html";
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             commomLines();
             const token = localStorage.getItem('token');
-            const response = await axios.delete('http://localhost:3000/group/remove-user', { data: userDetails, headers: { "Authorization": token } });
+            const response = await axios.delete(`${backendApi}/group/remove-user`, { data: userDetails, headers: { "Authorization": token } });
             if (response.data.success) {
                 alert(response.data.message);
                 window.location.href = "homepage.html";
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             commomLines();
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:3000/group/remove-admin', userDetails, { headers: { "Authorization": token } });
+            const response = await axios.post(`${backendApi}/group/remove-admin`, userDetails, { headers: { "Authorization": token } });
             if (response.data.success) {
                 alert(response.data.message);
                 window.location.href = "homepage.html";
@@ -187,7 +187,7 @@ deleteGroupBtn.addEventListener('click', async () => {
         const groupName = document.getElementById('groupName2').value;
         console.log(groupName);
         const token = localStorage.getItem('token');
-        const response = await axios.delete(`http://localhost:3000/group/delete-group/${groupName}`, { headers: { "Authorization": token } });
+        const response = await axios.delete(`${backendApi}/group/delete-group/${groupName}`, { headers: { "Authorization": token } });
         window.location.href = 'homepage.html';
         alert(response.data.message);
     }
