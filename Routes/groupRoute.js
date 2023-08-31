@@ -14,7 +14,7 @@ router.get('/group/get-users/:id', authenticateUser.authenticateUser, groupContr
 
 router.post('/group/make-admin', authenticateUser.authenticateUser, groupController.makeAdmin);
 
-router.delete('/group/remove-user', authenticateUser.authenticateUser, groupController.removeUserFromUser);
+router.delete('/group/remove-user', authenticateUser.authenticateUser, groupController.removeUserFromGroup);
 
 router.post('/group/remove-admin', authenticateUser.authenticateUser, groupController.removeAsAdmin);
 

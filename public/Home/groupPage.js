@@ -13,9 +13,8 @@ groupCreateBtn.addEventListener('click', async () => {
             name: groupName,
             userToBeAdd: userToBeAdd
         };
-        console.log(groupDetails);
         const token = localStorage.getItem('token');
-        const response = await axios.post(`${backendApi}/group/create-group`, groupDetails, { headers: { "Authorization": token } });
+        await axios.post(`${backendApi}/group/create-group`, groupDetails, { headers: { "Authorization": token } });
         window.location.href = 'homepage.html';
     }
     catch(err) {
@@ -30,7 +29,6 @@ window.addEventListener('DOMContentLoaded', getGroupName);
 async function getGroupName() {
     const token = localStorage.getItem('token');
     const response = await axios.get(`${backendApi}/user/groups`, { headers: { "Authorization": token } });
-    console.log(response.data.groupDetails);
     const groupId = [];
     for (let i = 0; i < response.data.groupIds.length; i++) {
         groupId.push(response.data.groupIds[i].groupId);

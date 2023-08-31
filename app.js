@@ -11,10 +11,10 @@ require('dotenv').config();
 const sequelize = require('./util/database');
 
 app.use(
-    cors({
-      origin: "*"
-    })
-  );
+  cors({
+    origin: "*"
+  })
+);
 app.use(bodyParser.json({ extended: false }));
 // app.use(helmet());
 app.use(compression());
@@ -25,6 +25,7 @@ const Chat = require('./model/chatModel');
 const Group = require('./model/groupModel');
 const UserGroup = require('./model/userGroupModel');
 const ResetPassword = require('./model/resetPasswordModel');
+const ArchivedChat = require('./model/archivedChatsModel');
 
 const adminRoute = require('./Routes/adminRoutes');
 const chatRoute = require('./Routes/chatRoute');
@@ -38,19 +39,25 @@ app.use(passwordRoute);
 
 User.hasMany(Chat, { onDelete: 'CASCADE' });
 Chat.belongsTo(User);
-User.belongsToMany(Group, {through: UserGroup, onDelete: 'CASCADE'});
-Group.belongsToMany(User, {through: UserGroup});
+User.hasMany(ArchivedChat, { onDelete: 'CASCADE' });
+ArchivedChat.belongsTo(User);
+User.belongsToMany(Group, { through: UserGroup, onDelete: 'CASCADE' });
+Group.belongsToMany(User, { through: UserGroup });
 Chat.belongsTo(Group, { onDelete: 'CASCADE' });
+ArchivedChat.belongsTo(Group, { onDelete: 'CASCADE' });
 Group.hasMany(Chat, { onDelete: 'CASCADE' });
 ResetPassword.belongsTo(User);
 
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'public',`${req.url}`))
+  res.sendFile(path.join(__dirname, 'public', `${req.url}`))
 })
+
+const job = require('./controller/cronjob');
+job.start();
 
 const port = process.env.PORT || 3000;
 sequelize.sync()
-    .then(() => {
-        app.listen(port);
-    })
-    .catch(err => console.log(err));
+  .then(() => {
+    app.listen(port);
+  })
+  .catch(err => console.log(err));

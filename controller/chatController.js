@@ -6,8 +6,6 @@ const jwt = require('jsonwebtoken');
 const io = require('socket.io')(4000, {
     cors: {
         origin: '*',
-        methods: ['GET', 'POST'],
-        credentials: true,
     }
 })
 
@@ -19,30 +17,41 @@ exports.sendMessage = async (req, res) => {
         const message = req.body.message;
         const groupId = req.body.groupId;
 
+        if(groupId === null) {
+            throw new Error('Please select group');
+        }
+
         const messageAdded = await Chat.create({
-            name: name,
-            message: message,
-            userId: userId,
-            groupId: groupId
+            name,
+            message,
+            userId,
+            groupId
         }, { transaction: t });
 
         const chatData = {
             id: messageAdded.id,
-            name: name,
-            message: message
+            name,
+            message
         }
         await t.commit();
         res.status(201).json({ message: chatData, success: true });
     }
     catch (err) {
-        console.log(err);
         await t.rollback();
+        if(err.message === 'Please select group') {
+            return res.status(500).json({ error: err.message });
+        }
         res.status(500).json({ error: "Something went wrong while sending message" });
     }
 }
 
 io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
+    console.log('Connected');
+
+    socket.on('joinGroup', (groupId) => {
+        socket.join(groupId);
+    });
+
     socket.on('getMessages', async (groupId) => {
         try {
             const messages = await Chat.findAll({
@@ -51,7 +60,7 @@ io.on('connection', (socket) => {
                     groupId: groupId
                 }
             });
-            io.emit('gotMessages', messages);
+            io.to(groupId).emit('gotMessages', messages);
         }
         catch (err) {
             socket.on('connect_error', err => {

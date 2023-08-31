@@ -19,13 +19,13 @@ form.addEventListener('submit', async (e) => {
             }
         );
         if (response.data.success) {
-            const message = response.data.message;
             const groupId = localStorage.getItem('activeGroup');
             loadMessages(groupId);
         }
     }
     catch (err) {
-        console.log(err);
+        const errMessage = err.response.data.error;
+        alert(errMessage);
     }
 });
 
@@ -62,9 +62,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 async function loadMessages(groupId) {
 
+    socket.emit('joinGroup', groupId);
     socket.emit('getMessages', groupId);
     socket.on('gotMessages', (messages) => {
-        console.log(messages);
         for (let i = 0; i < messages.length; i++) {
             if (!displayedMessages.has(messages[i].id)) {
                 showMessage(messages[i]);
@@ -83,7 +83,7 @@ async function showMessage(message) {
     const nameDiv = document.createElement('div');
     if (isUrl(message.message)) {
         messageDiv.innerHTML = `<a class="urlMsg" href="${message.message}">${message.message}</a>`;
-    }
+     }
     else {
         messageDiv.innerHTML = message.message;
     }
@@ -133,9 +133,16 @@ function uploadMedia() {
             const imageMessage = {
                 id: data.id,
                 name: data.name,
-                message: `<a href="${url}">${url}</a>`
+                message: `<a class="urlMsg" href="${url}">${url}</a>`
             };
             showMessage(imageMessage);
         })
     })
 }
+
+const logoutBtn = document.getElementById('logoutBtn');
+logoutBtn.addEventListener('click', () => {
+    localStorage.clear();
+    socket.disconnect();
+    window.location.href = "../Login/login.html";
+})

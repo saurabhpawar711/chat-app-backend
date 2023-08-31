@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 exports.sendEmail = async (req, res, next) => {
+    const t = await sequelize.transaction();
     try {
         const email = req.body.email;
         const id = uuidv4();
@@ -16,7 +17,7 @@ exports.sendEmail = async (req, res, next) => {
             throw new Error("Enter registered email");
         }
 
-        await ResetPassword.create({ id: id, isActive: true, userId: findEmail.id });
+        await ResetPassword.create({ id: id, isActive: true, userId: findEmail.id }, { transaction: t });
 
         const client = Sib.ApiClient.instance;
         const apiKey = client.authentications['api-key'];
@@ -42,17 +43,14 @@ exports.sendEmail = async (req, res, next) => {
             <h4>You can reset your password by clicking below</h4>
             <a href="${backendApi}/password/checkRequest/${id}">Click here</a>`
         })
+        await t.commit();
         return res.status(200).json({ message: 'reset password link sent to your email' });
 
     }
     catch (err) {
-        if(err.message === "Enter registered email") {
-            res.status(500).json({ error: err.message });
-        }
-        else {
-            console.log(err);
-            res.status(500).json({ message: 'Error while sending email' });
-        }   
+        await t.rolllback();
+        const errorMessage = err.message === "Enter registered email" ? err.message : 'Error while sending email';
+        res.status(500).json({ error: errorMessage });
     }
 }
 
@@ -73,22 +71,25 @@ exports.checkRequest = async (req, res, next) => {
     catch (err) {
         console.log(err);
         if (err.message === 'Link expired') {
-            res.status(500).json({error: err.message});
+            res.status(500).json({ error: err.message });
         }
     }
 }
 
 exports.updatePassword = async (req, res, next) => {
+    const t = await sequelize.transaction();
     try {
         const newPassword = req.body.newPassword;
         const userId = req.params.userId;
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-        await User.update({ password: hashedPassword }, { where: { id: userId } });
+        await User.update({ password: hashedPassword }, { where: { id: userId }, transaction: t });
+        await t.commit();
         res.status(200).json({ success: true, message: "Yor have successfully changed your password" });
     }
     catch (err) {
         console.log(err);
+        await t.rollback();
         res.status(404).json({ error: 'User not found' });
     }
 }

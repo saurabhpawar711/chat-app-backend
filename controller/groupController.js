@@ -1,15 +1,13 @@
 const Group = require('../model/groupModel');
 const UserGroup = require('../model/userGroupModel');
 const User = require('../model/adminModel');
-const Chat = require('../model/chatModel');
 const sequelize = require('../util/database');
 
 exports.createGroup = async (req, res) => {
     const t = await sequelize.transaction();
     try {
         const userId = req.user.id;
-        const name = req.body.name;
-        const userToBeAdd = req.body.userToBeAdd;
+        const { name, userToBeAdd } = req.body;
 
         const details = await Group.create({
             name: name,
@@ -26,7 +24,7 @@ exports.createGroup = async (req, res) => {
                 }
             })
             if (!idOfUserToBeAdd) {
-                throw new Error("Please Enter valid email")
+                throw new Error("Please Enter valid email");
             }
             else {
                 userIdArray.push(idOfUserToBeAdd.id);
@@ -48,12 +46,8 @@ exports.createGroup = async (req, res) => {
     catch (err) {
         console.log(err);
         await t.rollback();
-        if (err.message === "Please Enter valid email") {
-            res.status(500).json({ success: false, error: err.message });
-        }
-        else {
-            res.status(500).json({ success: false, error: "Something went wrong while creating group" });
-        }
+        const errorMessage = err.message === "Please Enter valid email" ? err.message : "Something went wrong while creating group";
+        res.status(500).json({ success: false, error: errorMessage });
     }
 }
 
@@ -68,14 +62,14 @@ exports.getGroups = async (req, res) => {
             }
         });
 
-        if(groupId) {
+        if (groupId) {
             const currentGroupName = await Group.findOne({
                 attributes: ['name'],
                 where: {
                     id: groupId
                 }
-            }); 
-            return res.status(200).json({groupName: currentGroupName});
+            });
+            return res.status(200).json({ groupName: currentGroupName });
         }
 
         const groupNames = [];
@@ -192,136 +186,118 @@ exports.getUsersOfGroup = async (req, res) => {
             memberIds.push(memberDetails.id);
         };
 
-        res.status(200).json({ success: true, memberNames: memberNames, memberIds: memberIds, isAdmin: isAdmin });
+        res.status(200).json({ success: true, memberNames, memberIds, isAdmin });
     }
     catch (err) {
         res.status(500).json({ success: false });
+    }
+}
+
+async function isAdminFunction(req, res) {
+    try {
+        const userId = req.user.id;
+        const groupId = req.body.groupId;
+        const user = await UserGroup.findOne({
+            where: {
+                userId: userId,
+                groupId: groupId
+            }
+        })
+        return user.isAdmin === true ? true : false;
+    }
+    catch (err) {
+        throw err;
     }
 }
 
 exports.makeAdmin = async (req, res) => {
     const t = await sequelize.transaction();
     try {
-        const userId = req.user.id;
         const groupId = req.body.groupId;
         const userIds = req.body.userIds;
-        const user = await UserGroup.findOne({
-            where: {
-                userId: userId,
-                groupId: groupId
-            }
-        })
-
-        if (user.isAdmin != true) {
-            throw new Error("Only Admin have Access")
+        const isAdmin = await isAdminFunction(req, res);
+        if (!isAdmin) {
+            throw new Error("Only Admin have Access");
         }
-        else {
-            for (let userId of userIds) {
-                await UserGroup.update({
-                    isAdmin: true
-                }, {
-                    where: {
-                        groupId: groupId,
-                        userId: userId
-                    }
-                }, { transaction: t })
-            }
+        for (let userId of userIds) {
+            await UserGroup.update({
+                isAdmin: true
+            }, {
+                where: {
+                    groupId: groupId,
+                    userId: userId
+                }
+            }, { transaction: t })
         }
         await t.commit();
         res.status(200).json({ success: true, message: "Successfully made admin" });
     }
     catch (err) {
         console.log(err);
-        if (err.message === 'Only Admin have Access') {
-            await t.rollback();
-            return res.status(500).json({ success: false, error: err.message });
-        }
         await t.rollback();
-        res.status(500).json({ success: false });
+        const errorMessage = err.message === 'Only Admin have Access' ? err.message : 'Something went wrong';
+        res.status(500).json({ success: false, error: errorMessage });
     }
 }
 
-exports.removeUserFromUser = async (req, res) => {
+exports.removeUserFromGroup = async (req, res) => {
     const t = await sequelize.transaction();
     try {
-        const userId = req.user.id;
         const groupId = req.body.groupId;
         const userIds = req.body.userIds;
-        const user = await UserGroup.findOne({
-            where: {
-                userId: userId,
-                groupId: groupId
-            }
-        })
-
-        if (user.isAdmin != true) {
-            throw new Error("Only Admin have Access")
+        const isAdmin = await isAdminFunction(req, res);
+        if (!isAdmin) {
+            throw new Error("Only Admin have Access");
         }
-        else {
-            for (let userId of userIds) {
-                await UserGroup.destroy({
-                    where: {
-                        groupId: groupId,
-                        userId: userId
-                    }, transaction: t
-                })
-            }
+        for (let userId of userIds) {
+            await UserGroup.destroy({
+                where: {
+                    groupId: groupId,
+                    userId: userId
+                }, transaction: t
+            })
         }
         await t.commit();
         res.status(200).json({ success: true, message: "Removed user successfully" });
     }
     catch (err) {
         console.log(err);
-        if (err.message === 'Only Admin have Access') {
-            await t.rollback();
-            return res.status(500).json({ success: false, error: err.message });
-        }
         await t.rollback();
-        res.status(500).json({ success: false });
+        const errorMessage = err.message === 'Only Admin have Access' ? err.message : 'Something went wrong';
+        res.status(500).json({ success: false, error: errorMessage });
     }
 }
 
 exports.removeAsAdmin = async (req, res) => {
     const t = await sequelize.transaction();
     try {
-        const userId = req.user.id;
         const groupId = req.body.groupId;
         const userIds = req.body.userIds;
-        const user = await UserGroup.findOne({
-            where: {
-                userId: userId,
-                groupId: groupId
-            }
-        })
-
-        if (user.isAdmin != true) {
-            throw new Error("Only Admin have Access")
+        const isAdmin = await isAdminFunction(req, res);
+        if (!isAdmin) {
+            throw new Error("Only Admin have Access");
         }
-        else {
-            for (let userId of userIds) {
-                await UserGroup.update({
-                    isAdmin: false
-                }, {
-                    where: {
-                        groupId: groupId,
-                        userId: userId
-                    }
-                }, { transaction: t })
-            }
+        for (let userId of userIds) {
+            await UserGroup.update({
+                isAdmin: false
+            }, {
+                where: {
+                    groupId: groupId,
+                    userId: userId
+                }
+            }, { transaction: t })
         }
         await t.commit();
         res.status(200).json({ success: true, message: "Removed as admin" });
     }
     catch (err) {
         console.log(err);
-        if (err.message === 'Only Admin have Access') {
-            await t.rollback();
-            return res.status(500).json({ success: false, error: err.message });
-        }
         await t.rollback();
-        res.status(500).json({ success: false });
+        const errorMessage = err.message === 'Only Admin have Access' ? err.message : 'Something went wrong';
+        res.status(500).json({ success: false, error: errorMessage });
     }
 }
+
 
 exports.deleteGroup = async (req, res) => {
     const t = await sequelize.transaction();
