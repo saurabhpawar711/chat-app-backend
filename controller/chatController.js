@@ -1,110 +1,141 @@
-const Chat = require('../model/chatModel');
-const Admin = require('../model/adminModel');
-const sequelize = require('../util/database');
-const S3Services = require('../services/S3Service');
-const jwt = require('jsonwebtoken');
-const io = require('socket.io')(4000, {
-    cors: {
-        origin: '*',
-    }
-})
+const Chat = require("../model/chatModel");
+const sequelize = require("../util/database");
+const UserGroup = require("../model/userGroupModel");
 
+// #region Send Messages
 exports.sendMessage = async (req, res) => {
-    const t = await sequelize.transaction();
-    try {
-        const userId = req.user.id;
-        const name = req.user.name;
-        const message = req.body.message;
-        const groupId = req.body.groupId;
+  const t = await sequelize.transaction();
+  try {
+    const senderId = req.user.id;
+    const receiverId = req.body?.receiverId ?? null;
+    const content = req.body.content;
+    const groupId = req.body?.groupId ?? null;
 
-        if(groupId === null) {
-            throw new Error('Please select group');
-        }
+    const message = {
+      senderId,
+      receiverId,
+      content,
+      groupId,
+    };
 
-        const messageAdded = await Chat.create({
-            name,
-            message,
-            userId,
-            groupId
-        }, { transaction: t });
+    await Chat.create(message, { transaction: t });
+    await t.commit();
+    res.status(201).json({ message, success: true });
+  } catch (err) {
+    console.log({ err });
+    await t.rollback();
+    res
+      .status(500)
+      .json({ error: "Something went wrong while sending message" });
+  }
+};
 
-        const chatData = {
-            id: messageAdded.id,
-            name,
-            message
-        }
-        await t.commit();
-        res.status(201).json({ message: chatData, success: true });
+// #region Get Messages
+const groupMessagesByKey = (messages, key) => {
+  return messages.reduce((acc, message) => {
+    const messageKey = message[key];
+    if (!acc[messageKey]) {
+      acc[messageKey] = [];
     }
-    catch (err) {
-        await t.rollback();
-        if(err.message === 'Please select group') {
-            return res.status(500).json({ error: err.message });
-        }
-        res.status(500).json({ error: "Something went wrong while sending message" });
+    acc[messageKey].push(message);
+    return acc;
+  }, {});
+};
+
+const getIndividualMessages = async (userId, withUserId, pageSize, offset) => {
+  try {
+    const options = {
+      attributes: ["id", "receiverId", "content"],
+      where: {
+        senderId: userId,
+        groupId: null,
+      },
+      order: [["id", "DESC"]],
+      limit: pageSize,
+      offset,
+      raw: true,
+    };
+    if (withUserId) options.where.receiverId = withUserId;
+    const messages = await Chat.findAll(options);
+    return groupMessagesByKey(messages, "receiverId");
+  } catch (error) {
+    return {};
+  }
+};
+
+const getGroupMessages = async (groupId, pageSize, offset) => {
+  try {
+    const options = {
+      attributes: ["id", "groupId", "content"],
+      where: {
+        receiverId: null,
+        groupId,
+      },
+      order: [["id", "DESC"]],
+      limit: pageSize,
+      offset,
+      raw: true,
+    };
+    const messages = await Chat.findAll(options);
+    return groupMessagesByKey(messages, "groupId");
+  } catch (error) {
+    return {};
+  }
+};
+
+exports.getMessages = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const withUserId = req.query?.withUserId;
+    const groupId = req.query?.groupId;
+    const page = req.query?.page ?? 1;
+    const pageSize = req?.query?.pageSize ?? 10;
+    const offset = (page - 1) * pageSize;
+
+    if (withUserId && !groupId) {
+      const individualMessages = await getIndividualMessages(
+        userId,
+        withUserId,
+        pageSize,
+        offset
+      );
+      return res.status(200).json({ individualMessages });
     }
-}
 
-io.on('connection', (socket) => {
-    console.log('Connected');
+    if (groupId && !withUserId) {
+      const groupMessages = await getGroupMessages(groupId, pageSize, offset);
+      return res.status(200).json({ groupMessages });
+    }
 
-    socket.on('joinGroup', (groupId) => {
-        socket.join(groupId);
+    let groupsUserPresents = [];
+    if (groupId) groupsUserPresents.push(groupId);
+    else {
+      groupsUserPresents = await UserGroup.findAll({
+        attributes: ["groupId"],
+        where: {
+          userId,
+        },
+        raw: true,
+      });
+      groupsUserPresents.forEach((element, index, arr) => {
+        arr[index] = element.groupId;
+      });
+    }
+
+    const [individualMessages, groupMessages] = await Promise.all([
+      getIndividualMessages(userId, withUserId, pageSize, offset),
+      getGroupMessages(groupsUserPresents, pageSize, offset),
+    ]);
+
+    return res.status(200).json({
+      individualMessages,
+      groupMessages,
     });
-
-    socket.on('getMessages', async (groupId) => {
-        try {
-            const messages = await Chat.findAll({
-                attributes: ['id', 'name', 'message'],
-                where: {
-                    groupId: groupId
-                }
-            });
-            io.to(groupId).emit('gotMessages', messages);
-        }
-        catch (err) {
-            socket.on('connect_error', err => {
-                console.log(err);
-            })
-        }
-    })
-
-    socket.on('upload', async (file, fileExtension, groupId, fileType, token) => {
-        const t = await sequelize.transaction();
-        try {
-            const userDetails = jwt.verify(token, process.env.JWT_SECRETKEY);
-            const user = await Admin.findOne({
-                where: {
-                    id: userDetails.userId
-                }
-            });
-            const userId = user.id;
-            const userName = user.name;
-            const fileName = `chatAppFile${groupId}/${new Date()}.${fileExtension}`;
-            const fileUrl = await S3Services.uploadToS3(file, fileName, fileType);
-            const newMessage = await Chat.create({
-                name: userName,
-                message: fileUrl,
-                userId: userId,
-                groupId: groupId
-            }, { transaction: t });
-
-            const chatData = {
-                id: newMessage.id,
-                name: userName,
-                message: fileUrl
-            }
-
-            await t.commit();
-            io.emit('fileUrl', chatData);
-        }
-        catch (err) {
-            await t.rollback();
-            console.log(err);
-            socket.on('connect_error', err => {
-                console.log(err);
-            })
-        }
-    })
-})
-
+  } catch (err) {
+    console.log({ err });
+    return res
+      .status(500)
+      .json({ error: "Something went wrong while retrieving messages." });
+  }
+};
+// #end region
